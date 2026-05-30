@@ -8,6 +8,15 @@
 *.so
 *.dylib
 
+# Local IDE / editor state
+.idea/
+
+# Local environment and coverage artifacts
+.env
+coverage
+coverage.out
+*.coverprofile
+
 # Test binary, built with `go test -c`
 *.test
 

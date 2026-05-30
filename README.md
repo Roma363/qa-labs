@@ -1,166 +1,102 @@
+# Go REST API Project
 
-# Go REST API with PostgreSQL
+## Про проект
 
-This is a sample Go REST API project that demonstrates how to perform CRUD operations on a `Product` resource using the Gin framework and PostgreSQL. The project also includes middleware for logging the IP address of incoming requests.
+Цей проект базується на boilerplate-коді, клонованому з репозиторію [gin-boilerplate](https://github.com/Massad/gin-boilerplate.git).
 
-## Project Structure
+**Важливо:** Оригінальний проект не мав тестів. На нього було накладено комплексну систему тестування, включаючи:
+- **Модульні тести (Unit Tests)** - тестування окремих компонентів
+- **Інтеграційні тести (Integration Tests)** - тестування взаємодії компонентів з базою даних
+- **Контрактні тести (Contract Tests)** - тестування контрактів між сервісами
+
+## Стек технологій
+
+- **Go 1.25.0** - мова програмування
+- **Gin Web Framework** - фреймворк для створення REST API
+- **GORM** - ORM для роботи з базою даних
+- **PostgreSQL** - база даних
+- **Testify** - фреймворк для написання тестів
+- **Testcontainers** - использование Docker контейнерів для тестування
+
+## Структура проекту
 
 ```
-go-rest-api
-│   main.go
-├───config
-│       config.go
-├───controllers
-│       product_controller.go
-├───middleware
-│       ip_logger.go
-├───models
-│       product.go
-│       database.go
-├───routes
-│       routes.go
-└───utils
-        response.go
+project/
+├── main.go                   # Точка входу додатку
+├── go.mod / go.sum          # Файли залежностей
+├── config/                   # Конфігурація додатку
+├── controllers/              # Контролери (обробка запитів)
+├── middlewares/              # Middleware функції
+├── models/                   # Моделі даних і робота з БД
+├── routes/                   # Маршрути API
+├── utils/                    # Утиліти (helper функції)
+├── *_test.go                 # Тести
+└── coverage/                 # Звіти покриття коду
 ```
 
-## Features
+## Встановлення та запуск
 
-- Create, read, update, and delete products
-- Log IP addresses of incoming requests
+### Встановлення залежностей
 
-## Getting Started
+```bash
+go mod download
+```
 
-### Prerequisites
+### Запуск додатку
 
-- Go 1.20 or higher
-- PostgreSQL
-- Git
-- Docker (optional, for running PostgreSQL in a container)
+```bash
+go run main.go
+```
 
-### Installation
+### Запуск тестів
 
-1. Clone the repository:
+Детальну інформацію про запуск тестів дивіться у файлі [TESTS_README.md](TESTS_README.md).
 
-   ```sh
-   git clone https://github.com/hasithaishere/go-rest-api-with-postgresql.git
-   cd go-rest-api
-   ```
+#### Модульні тести
+```bash
+go test -v ./controllers
+```
 
-2. Install dependencies:
+#### Інтеграційні тести
+```bash
+go test -v integration_test.go
+```
 
-   ```sh
-   go mod tidy
-   ```
+#### Контрактні тести
+```bash
+go test -v contract_test.go
+```
 
-3. Set up PostgreSQL:
+#### Все тести одночасно
+```bash
+go test -v ./...
+```
 
-   - **Option 1: Using Docker (Recommended)**
-     - Run PostgreSQL in a Docker container:
+### Покриття коду
 
-       ```sh
-       docker run --name postgres-db -e POSTGRES_USER=your_db_user -e POSTGRES_PASSWORD=your_db_password -e POSTGRES_DB=your_db_name -p 5432:5432 -d postgres
-       ```
+```bash
+go test -coverprofile coverage.out ./controllers
+go tool cover -html=coverage.out
+```
 
-     - Update the `.env` file with your PostgreSQL credentials:
+## Основні кінцеві точки (Endpoints)
 
-       ```env
-       DB_USER=your_db_user
-       DB_PASSWORD=your_db_password
-       DB_NAME=your_db_name
-       DB_HOST=localhost
-       DB_PORT=5432
-       ```
+API надає функціональність для управління товарами (Products):
+- **GET** `/products` - отримання списку товарів
+- **GET** `/products/:id` - отримання товару за ID
+- **POST** `/products` - створення нового товару
+- **PUT** `/products/:id` - оновлення товару
+- **DELETE** `/products/:id` - видалення товару
 
-   - **Option 2: Local PostgreSQL Installation**
-     - Create a new PostgreSQL database.
-     - Update the `.env` file with your PostgreSQL credentials:
+## Ліцензія
 
-       ```env
-       DB_USER=your_db_user
-       DB_PASSWORD=your_db_password
-       DB_NAME=your_db_name
-       DB_HOST=your_db_host
-       DB_PORT=your_db_port
-       ```
+Проект поширюється під ліцензією, яка зазначена у файлі [LICENSE](LICENSE).
 
-4. Create the `products` table in your PostgreSQL database:
+## Автор
 
-   ```sql
-   CREATE TABLE products (
-       id SERIAL PRIMARY KEY,
-       name VARCHAR(255) NOT NULL,
-       price INTEGER NOT NULL,
-       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-   );
-   ```
+Базований на [gin-boilerplate](https://github.com/Massad/gin-boilerplate.git)
 
-### Running the Application
+---
 
-1. Start the application:
+**Примітка:** Перший запуск інтеграційних тестів може тривати довше через завантаження Docker-образу (postgres:15-alpine).
 
-   ```sh
-   go run main.go
-   ```
-
-2. The server will start on `http://localhost:8080`.
-
-### API Endpoints
-
-- **GET /products**: Retrieve all products
-- **POST /products**: Create a new product
-  - Request body: `{ "name": "Sample Product", "price": 100 }`
-- **GET /products/:id**: Retrieve a product by ID
-- **PUT /products/:id**: Update a product by ID
-  - Request body: `{ "name": "Updated Product", "price": 150 }`
-- **DELETE /products/:id**: Delete a product by ID
-
-### Example CURL Commands
-
-- **Create a product:**
-
-  ```sh
-  curl -X POST http://localhost:8080/products \
-       -H "Content-Type: application/json" \
-       -d '{
-             "name": "Sample Product",
-             "price": 100
-           }'
-  ```
-
-- **Get all products:**
-
-  ```sh
-  curl http://localhost:8080/products
-  ```
-
-- **Get a product by ID:**
-
-  ```sh
-  curl http://localhost:8080/products/1
-  ```
-
-- **Update a product by ID:**
-
-  ```sh
-  curl -X PUT http://localhost:8080/products/1 \
-       -H "Content-Type: application/json" \
-       -d '{
-             "name": "Updated Product",
-             "price": 150
-           }'
-  ```
-
-- **Delete a product by ID:**
-
-  ```sh
-  curl -X DELETE http://localhost:8080/products/1
-  ```
-
-### Middleware
-
-The project includes a middleware that logs the IP address of incoming requests. The middleware is defined in `middleware/ip_logger.go` and is registered in the router setup in `routes/routes.go`.
-
-### License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
